@@ -1,0 +1,1747 @@
+openapi: 3.1.0
+
+info:
+  title: Vocabotics API
+  version: 1.0.0
+  description: |
+    # Vocabotics API Documentation
+
+    The Vocabotics API provides comprehensive endpoints for AI-orchestrated software development.
+
+    ## Key Features
+    - **Orchestration-first**: Single comprehensive API calls instead of iterative requests
+    - **Complete Traceability**: Integration map linking FE → BE → DB
+    - **AI-Powered**: Intelligent code generation using Claude Sonnet 4.5, Haiku, and Vision
+    - **Quality Built-in**: ISO 9001 & ISO 12207 compliance tracking
+    - **Real-time Updates**: WebSocket support for live progress
+
+    ## Authentication
+    All endpoints require JWT authentication via Bearer token in the Authorization header.
+
+  contact:
+    name: Vocabotics API Support
+    email: api@vocabotics.com
+    url: https://vocabotics.com/docs
+  license:
+    name: Proprietary
+    url: https://vocabotics.com/license
+
+servers:
+  - url: https://api.vocabotics.com/v1
+    description: Production server
+  - url: https://staging-api.vocabotics.com/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Projects
+    description: Project management and workflow
+  - name: Generation
+    description: AI-powered artifact generation
+  - name: Artifacts
+    description: Manage PRDs, architecture, code, and other artifacts
+  - name: Integration Map
+    description: Traceability and dependency mapping
+  - name: Testing
+    description: Test execution and results
+  - name: Quality
+    description: Quality metrics and compliance
+  - name: AI Analytics
+    description: AI usage statistics and cost tracking
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Core Models
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        role:
+          type: string
+          enum: [user, admin, enterprise]
+        createdAt:
+          type: string
+          format: date-time
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        vision:
+          type: string
+          description: Original vision from user
+        status:
+          type: string
+          enum: [active, archived, deleted]
+        currentPhase:
+          type: string
+          enum:
+            - vision_input
+            - prd_generation
+            - prd_review
+            - architecture_generation
+            - architecture_review
+            - sprint_planning
+            - implementation
+            - mapping_generation
+            - testing
+            - quality_validation
+            - deployment_ready
+            - deployed
+        tags:
+          type: array
+          items:
+            type: string
+        technologyStack:
+          type: object
+          additionalProperties: true
+        totalAICalls:
+          type: integer
+        totalAICostUsd:
+          type: number
+          format: float
+        totalLinesGenerated:
+          type: integer
+        settings:
+          type: object
+          properties:
+            autoGenerateTests:
+              type: boolean
+            enforceISO9001:
+              type: boolean
+            enforceISO12207:
+              type: boolean
+            targetTestCoverage:
+              type: number
+            qualityThreshold:
+              type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deployedAt:
+          type: string
+          format: date-time
+
+    Artifact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - prd
+            - architecture
+            - database_schema
+            - api_specification
+            - frontend_code
+            - backend_code
+            - test_suite
+            - integration_map
+            - quality_report
+            - deployment_config
+        version:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+        content:
+          type: object
+          additionalProperties: true
+        generatedBy:
+          type: string
+          enum: [sonnet-4.5, haiku, vision, human]
+        generationTimeMs:
+          type: integer
+        status:
+          type: string
+          enum: [draft, review, approved, deprecated]
+        approvedBy:
+          type: string
+          format: uuid
+        approvedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    IntegrationElement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        vocaboticsId:
+          type: string
+          description: Unique tag identifier (e.g., btn-login-submit)
+        elementType:
+          type: string
+          enum: [button, input, form, link, component, page, modal]
+        filePath:
+          type: string
+        lineNumber:
+          type: integer
+        columnNumber:
+          type: integer
+        componentName:
+          type: string
+        actionType:
+          type: string
+        actionHandler:
+          type: string
+        apiMethod:
+          type: string
+        apiEndpoint:
+          type: string
+        apiHandlerFile:
+          type: string
+        apiHandlerFunction:
+          type: string
+        databaseOperations:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [SELECT, INSERT, UPDATE, DELETE]
+              table:
+                type: string
+              query:
+                type: string
+        testFiles:
+          type: array
+          items:
+            type: string
+        testCoveragePercentage:
+          type: number
+        requirementIds:
+          type: array
+          items:
+            type: string
+        validationRules:
+          type: object
+          additionalProperties: true
+        accessibilityAttributes:
+          type: object
+          additionalProperties: true
+
+    APIEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE]
+        path:
+          type: string
+        handlerFile:
+          type: string
+        handlerFunction:
+          type: string
+        summary:
+          type: string
+        description:
+          type: string
+        requestSchema:
+          type: object
+          additionalProperties: true
+        responseSchema:
+          type: object
+          additionalProperties: true
+        parameters:
+          type: array
+          items:
+            type: object
+        requiresAuth:
+          type: boolean
+        requiredRoles:
+          type: array
+          items:
+            type: string
+        databaseOperations:
+          type: array
+          items:
+            type: object
+        usedByComponents:
+          type: array
+          items:
+            type: string
+        testCoveragePercentage:
+          type: number
+
+    TestRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        runType:
+          type: string
+          enum: [unit, integration, e2e, visual, accessibility, security, performance, all]
+        status:
+          type: string
+          enum: [running, completed, failed, cancelled]
+        totalTests:
+          type: integer
+        passedTests:
+          type: integer
+        failedTests:
+          type: integer
+        skippedTests:
+          type: integer
+        durationMs:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        triggeredBy:
+          type: string
+          format: uuid
+        triggerType:
+          type: string
+
+    TestResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        testRunId:
+          type: string
+          format: uuid
+        testType:
+          type: string
+        testFile:
+          type: string
+        testName:
+          type: string
+        testSuite:
+          type: string
+        passed:
+          type: boolean
+        errorMessage:
+          type: string
+        stackTrace:
+          type: string
+        durationMs:
+          type: integer
+        screenshotUrl:
+          type: string
+        baselineScreenshotUrl:
+          type: string
+        diffScreenshotUrl:
+          type: string
+        visualDiffScore:
+          type: number
+        testsRequirementIds:
+          type: array
+          items:
+            type: string
+
+    QualityMetrics:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        metricType:
+          type: string
+          enum:
+            - test_coverage
+            - code_quality
+            - iso9001_compliance
+            - iso12207_compliance
+            - wcag_compliance
+            - owasp_security
+            - performance
+            - overall
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+        details:
+          type: object
+          additionalProperties: true
+        gaps:
+          type: array
+          items:
+            type: object
+        recommendations:
+          type: array
+          items:
+            type: object
+        measuredAt:
+          type: string
+          format: date-time
+
+    TraceabilityMatrixEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        requirementId:
+          type: string
+        requirementText:
+          type: string
+        requirementType:
+          type: string
+        requirementPriority:
+          type: string
+          enum: [critical, high, medium, low]
+        designArtifactId:
+          type: string
+          format: uuid
+        designSection:
+          type: string
+        implementationFiles:
+          type: array
+          items:
+            type: string
+        implementationFunctions:
+          type: array
+          items:
+            type: string
+        testFiles:
+          type: array
+          items:
+            type: string
+        testNames:
+          type: array
+          items:
+            type: string
+        testCoveragePercentage:
+          type: number
+        status:
+          type: string
+          enum: [pending, designed, implemented, tested, verified, complete]
+
+    AICall:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        model:
+          type: string
+          enum: [sonnet-4.5, haiku, vision]
+        taskType:
+          type: string
+        phase:
+          type: string
+        promptTokens:
+          type: integer
+        completionTokens:
+          type: integer
+        totalTokens:
+          type: integer
+        costUsd:
+          type: number
+        durationMs:
+          type: integer
+        cached:
+          type: boolean
+        generationQualityScore:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    ImpactAnalysis:
+      type: object
+      properties:
+        change:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [database, api, frontend, backend]
+            description:
+              type: string
+        affectedElements:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrationElement'
+        affectedAPIs:
+          type: array
+          items:
+            $ref: '#/components/schemas/APIEndpoint'
+        estimatedEffort:
+          type: string
+        autoFixAvailable:
+          type: boolean
+        recommendations:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              action:
+                type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ============================================================================
+  # AUTHENTICATION
+  # ============================================================================
+
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                name:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout user
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Not authenticated
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+
+  # ============================================================================
+  # PROJECTS
+  # ============================================================================
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived, deleted]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+    post:
+      tags: [Projects]
+      summary: Create new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, vision]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                vision:
+                  type: string
+                  description: High-level vision for the project
+                tags:
+                  type: array
+                  items:
+                    type: string
+                settings:
+                  type: object
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Invalid input
+
+  /projects/{projectId}:
+    get:
+      tags: [Projects]
+      summary: Get project details
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+
+    patch:
+      tags: [Projects]
+      summary: Update project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                settings:
+                  type: object
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+    delete:
+      tags: [Projects]
+      summary: Delete project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Project deleted
+        '404':
+          description: Project not found
+
+  /projects/{projectId}/status:
+    get:
+      tags: [Projects]
+      summary: Get project status and progress
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    $ref: '#/components/schemas/Project'
+                  progress:
+                    type: object
+                    properties:
+                      currentPhase:
+                        type: string
+                      completedPhases:
+                        type: array
+                        items:
+                          type: string
+                      nextPhase:
+                        type: string
+                      percentComplete:
+                        type: number
+                  qualityMetrics:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  recentActivity:
+                    type: array
+                    items:
+                      type: object
+
+  /projects/{projectId}/advance:
+    post:
+      tags: [Projects]
+      summary: Advance project to next phase
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Phase advanced
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    $ref: '#/components/schemas/Project'
+                  previousPhase:
+                    type: string
+                  currentPhase:
+                    type: string
+        '400':
+          description: Cannot advance (requirements not met)
+
+  /projects/{projectId}/rollback:
+    post:
+      tags: [Projects]
+      summary: Rollback to previous phase
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetPhase]
+              properties:
+                targetPhase:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Rolled back successfully
+
+  # ============================================================================
+  # GENERATION (AI-POWERED)
+  # ============================================================================
+
+  /projects/{projectId}/generate/prd:
+    post:
+      tags: [Generation]
+      summary: Generate PRD from vision
+      description: |
+        Generates a comprehensive Product Requirements Document using Claude Sonnet 4.5.
+        This is a single, comprehensive AI call that produces complete requirements.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vision:
+                  type: string
+                  description: Override project vision if needed
+                context:
+                  type: object
+                  description: Additional context
+      responses:
+        '200':
+          description: PRD generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifact:
+                    $ref: '#/components/schemas/Artifact'
+                  aiCall:
+                    $ref: '#/components/schemas/AICall'
+        '202':
+          description: Generation started (async)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  estimatedTime:
+                    type: integer
+                    description: Estimated completion time in seconds
+
+  /projects/{projectId}/generate/architecture:
+    post:
+      tags: [Generation]
+      summary: Generate system architecture
+      description: |
+        Generates complete system architecture using Claude Sonnet 4.5.
+        Includes component breakdown, data flow, and technology stack.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Architecture generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifact:
+                    $ref: '#/components/schemas/Artifact'
+                  aiCall:
+                    $ref: '#/components/schemas/AICall'
+
+  /projects/{projectId}/generate/frontend:
+    post:
+      tags: [Generation]
+      summary: Generate complete frontend
+      description: |
+        Generates complete React frontend with Vocabotics tags using Claude Sonnet 4.5.
+        Single comprehensive call produces entire component tree.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                framework:
+                  type: string
+                  enum: [react, vue, svelte, angular]
+                  default: react
+                designSystem:
+                  type: string
+                  enum: [tailwind, material-ui, chakra, custom]
+      responses:
+        '200':
+          description: Frontend generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifact:
+                    $ref: '#/components/schemas/Artifact'
+                  aiCall:
+                    $ref: '#/components/schemas/AICall'
+                  filesGenerated:
+                    type: integer
+                  tagsInjected:
+                    type: integer
+
+  /projects/{projectId}/generate/backend:
+    post:
+      tags: [Generation]
+      summary: Generate complete backend
+      description: |
+        Generates complete backend using optimal AI model selection (Sonnet 4.5 or Haiku).
+        Includes API routes, business logic, and database integration.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Backend generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifact:
+                    $ref: '#/components/schemas/Artifact'
+                  aiCalls:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AICall'
+                  modulesGenerated:
+                    type: integer
+
+  /projects/{projectId}/generate/tests:
+    post:
+      tags: [Generation]
+      summary: Generate comprehensive test suite
+      description: |
+        Generates unit, integration, E2E, and visual tests.
+        Uses Claude Vision for visual test generation.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                types:
+                  type: array
+                  items:
+                    type: string
+                    enum: [unit, integration, e2e, visual]
+                targetCoverage:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  default: 95
+      responses:
+        '200':
+          description: Tests generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifact:
+                    $ref: '#/components/schemas/Artifact'
+                  aiCalls:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AICall'
+                  testsGenerated:
+                    type: integer
+                  estimatedCoverage:
+                    type: number
+
+  # ============================================================================
+  # ARTIFACTS
+  # ============================================================================
+
+  /projects/{projectId}/artifacts:
+    get:
+      tags: [Artifacts]
+      summary: List project artifacts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of artifacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artifact'
+
+  /artifacts/{artifactId}:
+    get:
+      tags: [Artifacts]
+      summary: Get artifact details
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Artifact details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+
+    patch:
+      tags: [Artifacts]
+      summary: Update artifact
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: object
+                status:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '200':
+          description: Artifact updated
+
+    delete:
+      tags: [Artifacts]
+      summary: Delete artifact
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Artifact deleted
+
+  /artifacts/{artifactId}/approve:
+    post:
+      tags: [Artifacts]
+      summary: Approve artifact
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Artifact approved
+
+  /artifacts/{artifactId}/versions:
+    get:
+      tags: [Artifacts]
+      summary: Get artifact version history
+      parameters:
+        - name: artifactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Version history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artifact'
+
+  # ============================================================================
+  # INTEGRATION MAP
+  # ============================================================================
+
+  /projects/{projectId}/map:
+    get:
+      tags: [Integration Map]
+      summary: Get complete integration map
+      description: |
+        Returns the complete FE → BE → DB integration map with all traceability.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Integration map
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IntegrationElement'
+                  apis:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/APIEndpoint'
+                  dependencies:
+                    type: object
+                    description: Dependency graph
+                  statistics:
+                    type: object
+                    properties:
+                      totalElements:
+                        type: integer
+                      totalAPIs:
+                        type: integer
+                      mappingCompleteness:
+                        type: number
+
+  /projects/{projectId}/map/{elementId}:
+    get:
+      tags: [Integration Map]
+      summary: Get specific element with full traceability
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: elementId
+          in: path
+          required: true
+          description: Vocabotics ID or UUID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Element with traceability
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  element:
+                    $ref: '#/components/schemas/IntegrationElement'
+                  api:
+                    $ref: '#/components/schemas/APIEndpoint'
+                  databaseOperations:
+                    type: array
+                    items:
+                      type: object
+                  tests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestResult'
+                  requirements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TraceabilityMatrixEntry'
+
+  /projects/{projectId}/map/analyze:
+    post:
+      tags: [Integration Map]
+      summary: Perform impact analysis
+      description: |
+        Analyzes the impact of a proposed change on the system.
+        Returns all affected components, APIs, and database operations.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [changeType]
+              properties:
+                changeType:
+                  type: string
+                  enum: [database, api, frontend, backend]
+                changeDetails:
+                  type: object
+                  description: Details of the proposed change
+      responses:
+        '200':
+          description: Impact analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpactAnalysis'
+
+  # ============================================================================
+  # TESTING
+  # ============================================================================
+
+  /projects/{projectId}/tests/run:
+    post:
+      tags: [Testing]
+      summary: Run tests
+      description: |
+        Executes comprehensive test suite including visual tests using Claude Vision.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                types:
+                  type: array
+                  items:
+                    type: string
+                    enum: [unit, integration, e2e, visual, accessibility, security, performance, all]
+                  default: [all]
+                parallel:
+                  type: boolean
+                  default: true
+      responses:
+        '202':
+          description: Tests started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  testRun:
+                    $ref: '#/components/schemas/TestRun'
+        '200':
+          description: Tests completed (if fast enough)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  testRun:
+                    $ref: '#/components/schemas/TestRun'
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestResult'
+
+  /projects/{projectId}/tests/results:
+    get:
+      tags: [Testing]
+      summary: Get test results
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: runId
+          in: query
+          schema:
+            type: string
+            format: uuid
+            description: Specific test run ID (optional, defaults to latest)
+      responses:
+        '200':
+          description: Test results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  testRun:
+                    $ref: '#/components/schemas/TestRun'
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestResult'
+
+  /projects/{projectId}/tests/coverage:
+    get:
+      tags: [Testing]
+      summary: Get test coverage report
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Coverage report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    type: number
+                  unit:
+                    type: number
+                  integration:
+                    type: number
+                  e2e:
+                    type: number
+                  visual:
+                    type: number
+                  filesCovered:
+                    type: integer
+                  filesTotal:
+                    type: integer
+                  linesCovered:
+                    type: integer
+                  linesTotal:
+                    type: integer
+                  details:
+                    type: object
+
+  # ============================================================================
+  # QUALITY & COMPLIANCE
+  # ============================================================================
+
+  /projects/{projectId}/quality:
+    get:
+      tags: [Quality]
+      summary: Get quality metrics
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Quality metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overall:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  testCoverage:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  codeQuality:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  iso9001:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  iso12207:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  wcag:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  owasp:
+                    $ref: '#/components/schemas/QualityMetrics'
+                  performance:
+                    $ref: '#/components/schemas/QualityMetrics'
+
+  /projects/{projectId}/compliance:
+    get:
+      tags: [Quality]
+      summary: Get compliance report
+      description: |
+        Returns comprehensive ISO 9001 & ISO 12207 compliance report.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Compliance report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  iso9001:
+                    type: object
+                    properties:
+                      compliant:
+                        type: boolean
+                      score:
+                        type: number
+                      gaps:
+                        type: array
+                        items:
+                          type: object
+                      recommendations:
+                        type: array
+                        items:
+                          type: object
+                  iso12207:
+                    type: object
+                    properties:
+                      compliant:
+                        type: boolean
+                      score:
+                        type: number
+                      traceabilityScore:
+                        type: number
+                      documentationScore:
+                        type: number
+                      vvScore:
+                        type: number
+                      gaps:
+                        type: array
+                        items:
+                          type: object
+
+  /projects/{projectId}/traceability:
+    get:
+      tags: [Quality]
+      summary: Get traceability matrix
+      description: |
+        Returns complete requirements → design → code → tests traceability matrix.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Traceability matrix
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matrix:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TraceabilityMatrixEntry'
+                  statistics:
+                    type: object
+                    properties:
+                      totalRequirements:
+                        type: integer
+                      requirementsWithDesign:
+                        type: integer
+                      requirementsWithImplementation:
+                        type: integer
+                      requirementsWithTests:
+                        type: integer
+                      completeness:
+                        type: number
+
+  # ============================================================================
+  # AI ANALYTICS
+  # ============================================================================
+
+  /projects/{projectId}/ai/stats:
+    get:
+      tags: [AI Analytics]
+      summary: Get AI usage statistics
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AI statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCalls:
+                    type: integer
+                  totalTokens:
+                    type: integer
+                  totalCost:
+                    type: number
+                  byModel:
+                    type: object
+                    properties:
+                      sonnet:
+                        type: object
+                      haiku:
+                        type: object
+                      vision:
+                        type: object
+                  byPhase:
+                    type: object
+                  cacheHitRate:
+                    type: number
+                  averageGenerationTime:
+                    type: integer
+
+  /projects/{projectId}/ai/costs:
+    get:
+      tags: [AI Analytics]
+      summary: Get AI cost breakdown
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Cost breakdown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCost:
+                    type: number
+                  byModel:
+                    type: object
+                  byPhase:
+                    type: object
+                  byDate:
+                    type: array
+                    items:
+                      type: object
+                  comparison:
+                    type: object
+                    properties:
+                      vocaboticsCalls:
+                        type: integer
+                      estimatedIterativeCalls:
+                        type: integer
+                      savingsPercentage:
+                        type: number
