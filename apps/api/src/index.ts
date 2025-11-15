@@ -28,6 +28,11 @@ import executeRoutes from './routes/execute.routes';
 import workflowRoutes from './routes/workflow.routes';
 import stripeRoutes from './routes/stripe.routes';
 import adminRoutes from './routes/admin.routes';
+import integrationMapRoutes from './routes/integration-map.routes';
+import qualityRoutes from './routes/quality.routes';
+import visualTestingRoutes from './routes/visual-testing.routes';
+import traceabilityRoutes from './routes/traceability.routes';
+import complianceRoutes from './routes/compliance.routes';
 
 // Environment
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
@@ -88,6 +93,11 @@ app.use('/api/execute', executeRoutes);
 app.use('/api/workflow', workflowRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/integration-map', integrationMapRoutes);
+app.use('/api/quality', qualityRoutes);
+app.use('/api/visual-testing', visualTestingRoutes);
+app.use('/api/traceability', traceabilityRoutes);
+app.use('/api/compliance', complianceRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -178,6 +188,11 @@ async function startServer() {
 ║   - Workflow:   http://localhost:${PORT}/api/workflow${' '.repeat(18)}║
 ║   - Stripe:     http://localhost:${PORT}/api/stripe${' '.repeat(20)}║
 ║   - Admin:      http://localhost:${PORT}/api/admin${' '.repeat(22)}║
+║   - Integration:http://localhost:${PORT}/api/integration-map${' '.repeat(9)}║
+║   - Quality:    http://localhost:${PORT}/api/quality${' '.repeat(19)}║
+║   - Visual:     http://localhost:${PORT}/api/visual-testing${' '.repeat(12)}║
+║   - Traceability:http://localhost:${PORT}/api/traceability${' '.repeat(11)}║
+║   - Compliance: http://localhost:${PORT}/api/compliance${' '.repeat(15)}║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
       `);
