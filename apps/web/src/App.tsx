@@ -15,6 +15,7 @@ import QualityPage from './pages/Quality';
 import IntegrationMapPage from './pages/IntegrationMap';
 import PRDReviewPage from './pages/PRDReview';
 import ArchitectureViewPage from './pages/ArchitectureView';
+import TestingPage from './pages/Testing';
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
@@ -165,6 +166,16 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <ArchitectureViewPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/testing"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <TestingPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
