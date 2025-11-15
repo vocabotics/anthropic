@@ -164,11 +164,15 @@ Vocabotics replaces thousands of iterative AI calls with comprehensive, orchestr
 
 ### Key Technologies
 
-- **AI**: OpenRouter (Claude Sonnet 4.5, Haiku, Vision)
-- **Backend**: Fastify + TypeScript + Prisma
-- **Frontend**: Next.js 14 + Zustand + Tailwind
+**DOGFOODING: Platform uses the SAME stack it generates**
+
+- **AI**: OpenRouter (Claude Sonnet 4.5, Haiku, Vision) + BYOK
+- **Backend**: Express + Node.js + TypeScript + Prisma
+- **Frontend**: React 18 + Vite + TypeScript + React Router
 - **Database**: PostgreSQL 16 + Redis + Qdrant
-- **Payments**: Stripe
+- **Payments**: Stripe (subscriptions, billing, invoicing)
+- **Version Control**: GitHub (deep integration)
+- **Execution**: Docker (isolated containers for safety)
 - **Testing**: Puppeteer + Claude Vision
 
 ### Unique Features
@@ -196,15 +200,18 @@ Vocabotics replaces thousands of iterative AI calls with comprehensive, orchestr
 
 **Sprint 0: Foundation** (Weeks 1-2)
 
-- [x] Monorepo structure
-- [x] Docker Compose setup
-- [x] Environment configuration
-- [ ] Database initialization
-- [ ] Backend API setup
-- [ ] Authentication system
-- [ ] OpenRouter integration
-- [ ] BYOK key manager
-- [ ] Frontend setup
+- [x] Monorepo structure (Turborepo)
+- [x] Docker Compose setup (Postgres, Redis, Qdrant)
+- [x] Environment configuration (.env.example)
+- [x] Documentation (PRD, Architecture, Sprint Plan)
+- [ ] Database initialization (Prisma)
+- [ ] Backend API setup (Express + TypeScript)
+- [ ] Authentication system (JWT + bcrypt)
+- [ ] OpenRouter integration (multi-model)
+- [ ] BYOK key manager (encrypted storage)
+- [ ] GitHub integration (OAuth + API)
+- [ ] Docker execution environment (dockerode)
+- [ ] Frontend setup (React + Vite)
 
 ---
 
