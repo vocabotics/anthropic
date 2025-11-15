@@ -25,6 +25,7 @@ import healthRoutes from './routes/health.routes';
 import keysRoutes from './routes/keys.routes';
 import githubRoutes from './routes/github.routes';
 import executeRoutes from './routes/execute.routes';
+import workflowRoutes from './routes/workflow.routes';
 
 // Environment
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
@@ -82,6 +83,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/keys', keysRoutes);
 app.use('/api/github', githubRoutes);
 app.use('/api/execute', executeRoutes);
+app.use('/api/workflow', workflowRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -104,7 +106,18 @@ wss.on('connection', (ws, req) => {
       logger.info('WebSocket message:', data);
 
       // Handle different message types
-      // (will be implemented in Sprint 1)
+      if (data.type === 'subscribe' && data.projectId) {
+        // Subscribe to project workflow events
+        const { workflowService } = require('./services/workflow.service');
+        workflowService.addWebSocketConnection(data.projectId, ws);
+        ws.send(JSON.stringify({
+          type: 'subscribed',
+          projectId: data.projectId,
+          timestamp: new Date(),
+        }));
+      } else if (data.type === 'ping') {
+        ws.send(JSON.stringify({ type: 'pong', timestamp: new Date() }));
+      }
     } catch (error) {
       logger.error('WebSocket message parse error:', error);
     }
@@ -112,6 +125,11 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     logger.info('WebSocket client disconnected');
+
+    // Clean up workflow subscriptions
+    const { workflowService } = require('./services/workflow.service');
+    // Remove from all project subscriptions
+    // (workflowService tracks which projects this ws is subscribed to)
   });
 
   ws.on('error', (error) => {
@@ -153,6 +171,7 @@ async function startServer() {
 ║   - Keys:       http://localhost:${PORT}/api/keys${' '.repeat(22)}║
 ║   - GitHub:     http://localhost:${PORT}/api/github${' '.repeat(20)}║
 ║   - Execute:    http://localhost:${PORT}/api/execute${' '.repeat(19)}║
+║   - Workflow:   http://localhost:${PORT}/api/workflow${' '.repeat(18)}║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
       `);
