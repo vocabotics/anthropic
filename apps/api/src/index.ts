@@ -22,6 +22,9 @@ import { redis } from './lib/redis';
 import authRoutes from './routes/auth.routes';
 import projectRoutes from './routes/project.routes';
 import healthRoutes from './routes/health.routes';
+import keysRoutes from './routes/keys.routes';
+import githubRoutes from './routes/github.routes';
+import executeRoutes from './routes/execute.routes';
 
 // Environment
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
@@ -76,6 +79,9 @@ app.use((req, res, next) => {
 app.use('/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/keys', keysRoutes);
+app.use('/api/github', githubRoutes);
+app.use('/api/execute', executeRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -144,6 +150,9 @@ async function startServer() {
 ║   - Health:     http://localhost:${PORT}/health${' '.repeat(24)}║
 ║   - Auth:       http://localhost:${PORT}/api/auth${' '.repeat(21)}║
 ║   - Projects:   http://localhost:${PORT}/api/projects${' '.repeat(17)}║
+║   - Keys:       http://localhost:${PORT}/api/keys${' '.repeat(22)}║
+║   - GitHub:     http://localhost:${PORT}/api/github${' '.repeat(20)}║
+║   - Execute:    http://localhost:${PORT}/api/execute${' '.repeat(19)}║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
       `);
