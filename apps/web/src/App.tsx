@@ -12,6 +12,9 @@ import NewProjectPage from './pages/NewProject';
 import ProjectWorkflowPage from './pages/ProjectWorkflow';
 import AdminPage from './pages/Admin';
 import QualityPage from './pages/Quality';
+import IntegrationMapPage from './pages/IntegrationMap';
+import PRDReviewPage from './pages/PRDReview';
+import ArchitectureViewPage from './pages/ArchitectureView';
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
@@ -132,6 +135,36 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <QualityPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/integration-map"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <IntegrationMapPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/prd"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <PRDReviewPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/architecture"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <ArchitectureViewPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
