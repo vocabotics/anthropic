@@ -18,6 +18,19 @@ import { notFoundHandler } from './middleware/not-found';
 import { prisma } from './lib/prisma';
 import { redis } from './lib/redis';
 import { setupSwagger } from './swagger';
+import {
+  requestTiming,
+  requestId,
+  etagMiddleware,
+  queryOptimizationHints,
+} from './middleware/performance.middleware';
+import {
+  secureHeaders,
+  sanitizeInput,
+  preventSqlInjection,
+  preventParameterPollution,
+  auditLog,
+} from './middleware/security.middleware';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -66,12 +79,26 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression
 app.use(compression());
 
+// Performance middleware
+app.use(requestId);
+app.use(requestTiming);
+app.use(queryOptimizationHints);
+app.use(etagMiddleware);
+
+// Security middleware
+app.use(secureHeaders);
+app.use(sanitizeInput);
+app.use(preventSqlInjection);
+app.use(preventParameterPollution);
+app.use(auditLog);
+
 // Request logging
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.info({
+      requestId: req.id,
       method: req.method,
       path: req.path,
       status: res.statusCode,
