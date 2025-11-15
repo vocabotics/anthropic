@@ -1,0 +1,493 @@
+// ============================================================================
+// Vocabotics Prisma Schema
+// Based on schema.sql - PostgreSQL database
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  avatarUrl     String?   @map("avatar_url")
+  role          String    @default("user") // user, admin, enterprise
+  emailVerified Boolean   @default(false) @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastLoginAt   DateTime? @map("last_login_at")
+  metadata      Json      @default("{}")
+
+  // Relations
+  sessions        Session[]
+  projects        Project[]
+  projectMembers  ProjectMember[]
+  subscriptions   Subscription[]
+  usageTracking   UsageTracking[]
+  notifications   Notification[]
+  aiCalls         AICall[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+model Project {
+  id                 String   @id @default(uuid())
+  ownerId            String   @map("owner_id")
+  name               String
+  description        String?
+  vision             String // Original user vision
+  status             String   @default("active") // active, archived, deleted
+  currentPhase       String   @default("vision_input") @map("current_phase")
+  tags               String[]
+  technologyStack    Json     @default("{}") @map("technology_stack")
+  totalAICalls       Int      @default(0) @map("total_ai_calls")
+  totalAICostUsd     Decimal  @default(0) @map("total_ai_cost_usd") @db.Decimal(10, 4)
+  totalLinesGenerated Int     @default(0) @map("total_lines_generated")
+  settings           Json     @default("{\"autoGenerateTests\": true, \"enforceISO9001\": true, \"enforceISO12207\": true, \"targetTestCoverage\": 95, \"qualityThreshold\": 90}")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  deployedAt         DateTime? @map("deployed_at")
+
+  // Relations
+  owner             User                       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members           ProjectMember[]
+  artifacts         Artifact[]
+  integrationElements IntegrationElement[]
+  apiEndpoints      APIEndpoint[]
+  databaseOperations DatabaseOperation[]
+  dependencies      Dependency[]
+  testRuns          TestRun[]
+  qualityMetrics    QualityMetric[]
+  traceabilityMatrix TraceabilityMatrix[]
+  aiCalls           AICall[]
+  stateTransitions  StateTransition[]
+  notifications     Notification[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([currentPhase])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  role      String   @default("viewer") // owner, editor, viewer
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+// ============================================================================
+// ARTIFACTS
+// ============================================================================
+
+model Artifact {
+  id                String   @id @default(uuid())
+  projectId         String   @map("project_id")
+  type              String // prd, architecture, database_schema, etc.
+  version           String   @default("1.0")
+  parentId          String?  @map("parent_id")
+  name              String
+  description       String?
+  content           Json
+  generatedBy       String?  @map("generated_by") // sonnet-4.5, haiku, vision, human
+  generationPrompt  String?  @map("generation_prompt")
+  generationTimeMs  Int?     @map("generation_time_ms")
+  status            String   @default("draft") // draft, review, approved, deprecated
+  approvedBy        String?  @map("approved_by")
+  approvedAt        DateTime? @map("approved_at")
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("artifacts")
+}
+
+// ============================================================================
+// INTEGRATION MAP & TRACEABILITY
+// ============================================================================
+
+model IntegrationElement {
+  id                    String   @id @default(uuid())
+  projectId             String   @map("project_id")
+  vocaboticsId          String   @map("vocabotics_id") // Unique tag ID
+  elementType           String   @map("element_type") // button, input, form, etc.
+  filePath              String?  @map("file_path")
+  lineNumber            Int?     @map("line_number")
+  columnNumber          Int?     @map("column_number")
+  componentName         String?  @map("component_name")
+  actionType            String?  @map("action_type")
+  actionHandler         String?  @map("action_handler")
+  apiMethod             String?  @map("api_method")
+  apiEndpoint           String?  @map("api_endpoint")
+  apiHandlerFile        String?  @map("api_handler_file")
+  apiHandlerFunction    String?  @map("api_handler_function")
+  databaseOperations    Json     @default("[]") @map("database_operations")
+  testFiles             String[]  @map("test_files")
+  testCoveragePercentage Decimal? @map("test_coverage_percentage") @db.Decimal(5, 2)
+  requirementIds        String[]  @map("requirement_ids")
+  validationRules       Json     @default("{}") @map("validation_rules")
+  accessibilityAttributes Json   @default("{}") @map("accessibility_attributes")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, vocaboticsId])
+  @@index([projectId])
+  @@index([vocaboticsId])
+  @@index([apiEndpoint])
+  @@index([elementType])
+  @@map("integration_elements")
+}
+
+model APIEndpoint {
+  id                  String   @id @default(uuid())
+  projectId           String   @map("project_id")
+  method              String
+  path                String
+  handlerFile         String?  @map("handler_file")
+  handlerFunction     String?  @map("handler_function")
+  summary             String?
+  description         String?
+  requestSchema       Json?    @map("request_schema")
+  responseSchema      Json?    @map("response_schema")
+  parameters          Json     @default("[]")
+  requiresAuth        Boolean  @default(true) @map("requires_auth")
+  requiredRoles       String[] @map("required_roles")
+  databaseOperations  Json     @default("[]") @map("database_operations")
+  callsExternalApis   Json     @default("[]") @map("calls_external_apis")
+  dependsOnServices   String[] @map("depends_on_services")
+  usedByComponents    String[] @map("used_by_components")
+  testCoveragePercentage Decimal? @map("test_coverage_percentage") @db.Decimal(5, 2)
+  metadata            Json     @default("{}")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, method, path])
+  @@index([projectId])
+  @@map("api_endpoints")
+}
+
+model DatabaseOperation {
+  id                    String   @id @default(uuid())
+  projectId             String   @map("project_id")
+  operationType         String   @map("operation_type") // SELECT, INSERT, UPDATE, DELETE
+  tableName             String   @map("table_name")
+  queryTemplate         String   @map("query_template")
+  filePath              String?  @map("file_path")
+  lineNumber            Int?     @map("line_number")
+  functionName          String?  @map("function_name")
+  usedByApis            String[] @map("used_by_apis")
+  usedByElements        String[] @map("used_by_elements")
+  estimatedComplexity   String?  @map("estimated_complexity")
+  requiresIndex         Boolean  @default(false) @map("requires_index")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([tableName])
+  @@map("database_operations")
+}
+
+model Dependency {
+  id             String   @id @default(uuid())
+  projectId      String   @map("project_id")
+  fromType       String   @map("from_type")
+  fromId         String   @map("from_id")
+  toType         String   @map("to_type")
+  toId           String   @map("to_id")
+  dependencyType String   @map("dependency_type") // calls, imports, uses, etc.
+  critical       Boolean  @default(false)
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, fromType, fromId, toType, toId, dependencyType])
+  @@index([projectId])
+  @@map("dependencies")
+}
+
+// ============================================================================
+// TESTING & QUALITY
+// ============================================================================
+
+model TestRun {
+  id            String   @id @default(uuid())
+  projectId     String   @map("project_id")
+  runType       String   @map("run_type") // unit, integration, e2e, visual, all
+  status        String   @default("running") // running, completed, failed, cancelled
+  totalTests    Int      @default(0) @map("total_tests")
+  passedTests   Int      @default(0) @map("passed_tests")
+  failedTests   Int      @default(0) @map("failed_tests")
+  skippedTests  Int      @default(0) @map("skipped_tests")
+  durationMs    Int?     @map("duration_ms")
+  startedAt     DateTime @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  triggeredBy   String?  @map("triggered_by")
+  triggerType   String?  @map("trigger_type")
+  metadata      Json     @default("{}")
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  results TestResult[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("test_runs")
+}
+
+model TestResult {
+  id                     String   @id @default(uuid())
+  testRunId              String   @map("test_run_id")
+  projectId              String   @map("project_id")
+  testType               String   @map("test_type")
+  testFile               String?  @map("test_file")
+  testName               String   @map("test_name")
+  testSuite              String?  @map("test_suite")
+  passed                 Boolean
+  errorMessage           String?  @map("error_message")
+  stackTrace             String?  @map("stack_trace")
+  durationMs             Int?     @map("duration_ms")
+  screenshotUrl          String?  @map("screenshot_url")
+  baselineScreenshotUrl  String?  @map("baseline_screenshot_url")
+  diffScreenshotUrl      String?  @map("diff_screenshot_url")
+  visualDiffScore        Decimal? @map("visual_diff_score") @db.Decimal(5, 2)
+  codeCoverage           Json?    @map("code_coverage")
+  testsRequirementIds    String[] @map("tests_requirement_ids")
+  testsElementIds        String[] @map("tests_element_ids")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  testRun TestRun @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
+  @@index([testRunId])
+  @@index([projectId])
+  @@index([passed])
+  @@index([testType])
+  @@map("test_results")
+}
+
+model QualityMetric {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+  metricType      String   @map("metric_type") // test_coverage, code_quality, etc.
+  score           Decimal  @db.Decimal(5, 2)
+  details         Json
+  gaps            Json     @default("[]")
+  recommendations Json     @default("[]")
+  measuredAt      DateTime @default(now()) @map("measured_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([metricType])
+  @@index([measuredAt])
+  @@map("quality_metrics")
+}
+
+model TraceabilityMatrix {
+  id                        String   @id @default(uuid())
+  projectId                 String   @map("project_id")
+  requirementId             String   @map("requirement_id")
+  requirementText           String   @map("requirement_text")
+  requirementType           String?  @map("requirement_type")
+  requirementPriority       String?  @map("requirement_priority")
+  designArtifactId          String?  @map("design_artifact_id")
+  designSection             String?  @map("design_section")
+  implementationFiles       String[] @map("implementation_files")
+  implementationFunctions   String[] @map("implementation_functions")
+  testFiles                 String[] @map("test_files")
+  testNames                 String[] @map("test_names")
+  testCoveragePercentage    Decimal? @map("test_coverage_percentage") @db.Decimal(5, 2)
+  status                    String   @default("pending") // pending, designed, implemented, tested, verified, complete
+  metadata                  Json     @default("{}")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, requirementId])
+  @@index([projectId])
+  @@index([requirementId])
+  @@index([status])
+  @@map("traceability_matrix")
+}
+
+// ============================================================================
+// AI USAGE & ANALYTICS
+// ============================================================================
+
+model AICall {
+  id                      String   @id @default(uuid())
+  projectId               String?  @map("project_id")
+  userId                  String?  @map("user_id")
+  model                   String // sonnet-4.5, haiku, vision
+  taskType                String   @map("task_type")
+  phase                   String?
+  promptTokens            Int      @map("prompt_tokens")
+  completionTokens        Int      @map("completion_tokens")
+  totalTokens             Int      @map("total_tokens")
+  costUsd                 Decimal  @map("cost_usd") @db.Decimal(10, 6)
+  durationMs              Int      @map("duration_ms")
+  cached                  Boolean  @default(false)
+  cacheKey                String?  @map("cache_key")
+  generationQualityScore  Decimal? @map("generation_quality_score") @db.Decimal(5, 2)
+  metadata                Json     @default("{}")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([model])
+  @@index([createdAt])
+  @@index([cached])
+  @@map("ai_calls")
+}
+
+// ============================================================================
+// WORKFLOW & STATE
+// ============================================================================
+
+model StateTransition {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  fromPhase   String   @map("from_phase")
+  toPhase     String   @map("to_phase")
+  triggeredBy String?  @map("triggered_by")
+  triggerType String?  @map("trigger_type")
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("state_transitions")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  type       String
+  title      String
+  message    String?
+  projectId  String?  @map("project_id")
+  artifactId String?  @map("artifact_id")
+  read       Boolean  @default(false)
+  readAt     DateTime? @map("read_at")
+  actionUrl  String?  @map("action_url")
+  actionLabel String? @map("action_label")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================================================
+// BILLING & SUBSCRIPTIONS
+// ============================================================================
+
+model Subscription {
+  id                    String   @id @default(uuid())
+  userId                String   @map("user_id")
+  plan                  String // free, pro, team, enterprise
+  status                String   @default("active") // active, cancelled, expired, suspended
+  billingCycle          String?  @map("billing_cycle") // monthly, annual
+  priceUsd              Decimal? @map("price_usd") @db.Decimal(10, 2)
+  maxProjects           Int?     @map("max_projects")
+  maxTeamMembers        Int?     @map("max_team_members")
+  maxAICallsPerMonth    Int?     @map("max_ai_calls_per_month")
+  startedAt             DateTime @default(now()) @map("started_at")
+  expiresAt             DateTime? @map("expires_at")
+  cancelledAt           DateTime? @map("cancelled_at")
+  stripeSubscriptionId  String?  @map("stripe_subscription_id")
+  stripeCustomerId      String?  @map("stripe_customer_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model UsageTracking {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  periodStart     DateTime @map("period_start") @db.Date
+  periodEnd       DateTime @map("period_end") @db.Date
+  projectsCreated Int      @default(0) @map("projects_created")
+  aiCallsMade     Int      @default(0) @map("ai_calls_made")
+  aiCostUsd       Decimal  @default(0) @map("ai_cost_usd") @db.Decimal(10, 4)
+  storageMb       Int      @default(0) @map("storage_mb")
+  details         Json     @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodStart])
+  @@index([userId])
+  @@index([periodStart])
+  @@map("usage_tracking")
+}
