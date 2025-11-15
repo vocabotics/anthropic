@@ -165,14 +165,99 @@ Transform software development from an iterative, fragmented process into a smoo
 **Traditional Testing**: Manually write assertions for every element
 **Vocabotics Testing**: "Does this look right?" → AI answers definitively
 
-### 4. Comprehensive Quality System
+### 4. GitHub Integration (Critical)
+
+**Deep integration with GitHub for complete workflow**:
+
+- **Automatic repository creation** for every generated project
+- **Commit history tracking** - every AI generation creates a commit
+- **Branch management** - feature branches for new functionality
+- **Pull request automation** - AI can create PRs with descriptions
+- **Code review integration** - comments and suggestions
+- **GitHub Actions** - CI/CD pipelines auto-configured
+- **Issues & Projects** - requirement tracking via GitHub Issues
+- **Deployment** - GitHub Pages, Vercel, Netlify integration
+
+**Why Critical**:
+- Version control for all AI-generated code
+- Collaboration built-in from day one
+- Deployment pipelines automatic
+- Complete audit trail
+- Industry-standard workflow
+
+### 5. Docker Execution for Safety
+
+**All generated code executes in isolated Docker containers**:
+
+- **Sandbox environment** - no access to host system
+- **Resource limits** - CPU, memory, network constraints
+- **Security isolation** - generated code can't harm platform
+- **Clean environments** - fresh container per execution
+- **Multi-language support** - different runtimes in containers
+- **Testing isolation** - tests run in containers
+
+**Why Critical**:
+- Security: AI-generated code is untrusted until verified
+- Isolation: One project can't affect another
+- Reproducibility: Same environment every time
+- Scalability: Easy to scale with container orchestration
+
+### 6. Technology Stack (Dogfooding Principle)
+
+**The platform uses the SAME stack it generates**:
+
+**Frontend** (Platform & Generated):
+- React 18+ with TypeScript
+- Vite for blazing-fast builds
+- Zustand for state management
+- Tailwind CSS for styling
+- Radix UI for components
+- Framer Motion for animations
+
+**Backend** (Platform & Generated):
+- Node.js 20+ with TypeScript
+- Express for REST APIs
+- Prisma ORM for database
+- PostgreSQL for primary database
+- Redis for caching
+- Zod for validation
+
+**Why Same Stack**:
+- ✅ **Dogfooding** - We use what we build
+- ✅ **Validation** - Proves our orchestration works
+- ✅ **Consistency** - Users see familiar patterns
+- ✅ **Trust** - We trust the code we generate enough to run our platform on it
+- ✅ **Quality** - Forces us to maintain high generation standards
+
+**Future Stack Support**:
+- Vue.js + Nuxt (Phase 2)
+- Svelte + SvelteKit (Phase 2)
+- Angular (Phase 3)
+- Python + FastAPI backend (Phase 2)
+- Go backend (Phase 3)
+- Multiple database options (MongoDB, MySQL, etc.)
+
+### 7. Payment & Subscription Infrastructure
+
+**Stripe integration for complete monetization**:
+
+- **Subscription tiers** - Free, Pro, Team, Enterprise
+- **Usage-based billing** - AI calls, projects, storage
+- **Payment methods** - Cards, ACH, international
+- **Billing portal** - Customer self-service
+- **Invoicing** - Automatic invoice generation
+- **Webhooks** - Real-time payment events
+- **Tax calculation** - Stripe Tax integration
+- **Failed payment handling** - Automatic retry logic
+
+### 8. Comprehensive Quality System
 - ISO 9001 quality management principles
 - ISO 12207 software lifecycle compliance
 - Automated traceability matrices
 - Requirements → Design → Code → Test mapping
 - Verification & Validation at every stage
 
-### 5. Intelligent Flow Orchestration
+### 9. Intelligent Flow Orchestration
 ```
 Human Vision Input
     ↓

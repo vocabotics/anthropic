@@ -41,13 +41,14 @@ Following the Vocabotics orchestration paradigm, we break down implementation in
 - [ ] Database backup strategy
 
 #### 3. Backend Foundation
-- [ ] Fastify server setup
+- [ ] Express server setup (NOT Fastify - we generate Express)
 - [ ] TypeScript configuration
 - [ ] Prisma ORM integration
-- [ ] API route structure
+- [ ] API route structure with Express Router
 - [ ] Error handling middleware
 - [ ] Logging (Winston)
 - [ ] Health check endpoints
+- [ ] CORS configuration
 
 #### 4. Authentication System
 - [ ] JWT token generation/validation
@@ -72,14 +73,55 @@ Following the Vocabotics orchestration paradigm, we break down implementation in
 - [ ] Usage tracking per key
 - [ ] Default vs. BYOK routing logic
 
+#### 7. GitHub Integration (CRITICAL)
+- [ ] GitHub OAuth app setup
+- [ ] GitHub API client (@octokit/rest)
+- [ ] Repository creation API
+- [ ] Commit API (for AI-generated code)
+- [ ] Branch management API
+- [ ] Pull request API
+- [ ] GitHub Actions template generation
+- [ ] Webhook handling (for CI/CD events)
+- [ ] User GitHub token storage (encrypted)
+
+#### 8. Docker Execution Environment
+- [ ] Docker SDK integration (dockerode)
+- [ ] Container image definitions (Node, Python, Go, etc.)
+- [ ] Sandbox execution service
+- [ ] Resource limits (CPU, memory, network)
+- [ ] Volume management (code, logs)
+- [ ] Container lifecycle management
+- [ ] Log streaming from containers
+- [ ] Security policies (no privileged mode)
+- [ ] Container cleanup (auto-remove)
+
+#### 9. Frontend Foundation (React + Vite)
+- [ ] Vite project setup
+- [ ] React 18 + TypeScript configuration
+- [ ] React Router 6 setup
+- [ ] Zustand store configuration
+- [ ] Tailwind CSS setup
+- [ ] Radix UI integration
+- [ ] Framer Motion setup
+- [ ] Basic layout components (AppShell, Sidebar)
+
 **Success Criteria**:
 - ✅ Developer can run entire stack locally with one command
 - ✅ Database schema deployed and seeded
 - ✅ User can register and login
 - ✅ OpenRouter connection working
 - ✅ BYOK keys can be stored and used
+- ✅ GitHub OAuth working, can create repositories
+- ✅ Docker containers can execute generated code safely
+- ✅ React + Vite frontend running with hot reload
 
-**Estimated AI Calls**: 8 (Sonnet 4.5 for complex modules, Haiku for simple ones)
+**Estimated AI Calls**: 15 (increased due to GitHub + Docker integration)
+
+**IMPORTANT NOTES**:
+- Platform uses React + Express (same stack it generates)
+- All generated code runs in Docker containers for security
+- GitHub integration is critical for version control & deployment
+- BYOK allows users to use their own OpenRouter/Anthropic keys
 
 ---
 
@@ -560,29 +602,32 @@ Following the Vocabotics orchestration paradigm, we break down implementation in
 
 ## Technology Stack Summary
 
-### Backend
+**DOGFOODING PRINCIPLE: Platform uses the SAME stack it generates**
+
+### Backend (Platform & Generated Projects)
 ```yaml
 Runtime: Node.js 20+
 Language: TypeScript 5.3+
-Framework: Fastify 4.x
+Framework: Express 4.x (NOT Fastify)
 Database: PostgreSQL 16+
 Cache: Redis 7+
 Vector DB: Qdrant
 ORM: Prisma 5.x
+Validation: Zod
 Queue: BullMQ
 Testing: Jest + Supertest
 ```
 
-### Frontend
+### Frontend (Platform & Generated Projects)
 ```yaml
-Framework: Next.js 14+ (App Router)
-Language: TypeScript 5.3+
-State: Zustand
+Framework: React 18+ with TypeScript (NOT Next.js)
+Build Tool: Vite 5.x (fast, modern, HMR)
+Router: React Router 6.x
+State: Zustand (simple, KISS)
 UI: Radix UI + Tailwind CSS 3.x
 Animations: Framer Motion
 Charts: D3.js + Recharts
 Testing: Vitest + Playwright
-Build: Turbopack
 ```
 
 ### AI Integration
