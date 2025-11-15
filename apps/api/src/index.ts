@@ -17,6 +17,7 @@ import { errorHandler } from './middleware/error-handler';
 import { notFoundHandler } from './middleware/not-found';
 import { prisma } from './lib/prisma';
 import { redis } from './lib/redis';
+import { setupSwagger } from './swagger';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -79,6 +80,12 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// ============================================================================
+// API DOCUMENTATION
+// ============================================================================
+
+setupSwagger(app);
 
 // ============================================================================
 // ROUTES
@@ -179,6 +186,7 @@ async function startServer() {
 ║   WebSocket:    Enabled ✓${' '.repeat(40)}║
 ║                                                                ║
 ║   Endpoints:                                                   ║
+║   - Docs:       http://localhost:${PORT}/api-docs${' '.repeat(21)}║
 ║   - Health:     http://localhost:${PORT}/health${' '.repeat(24)}║
 ║   - Auth:       http://localhost:${PORT}/api/auth${' '.repeat(21)}║
 ║   - Projects:   http://localhost:${PORT}/api/projects${' '.repeat(17)}║
