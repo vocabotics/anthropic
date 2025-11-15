@@ -26,6 +26,8 @@ import keysRoutes from './routes/keys.routes';
 import githubRoutes from './routes/github.routes';
 import executeRoutes from './routes/execute.routes';
 import workflowRoutes from './routes/workflow.routes';
+import stripeRoutes from './routes/stripe.routes';
+import adminRoutes from './routes/admin.routes';
 
 // Environment
 const PORT = parseInt(process.env.API_PORT || '3001', 10);
@@ -84,6 +86,8 @@ app.use('/api/keys', keysRoutes);
 app.use('/api/github', githubRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/workflow', workflowRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -172,6 +176,8 @@ async function startServer() {
 ║   - GitHub:     http://localhost:${PORT}/api/github${' '.repeat(20)}║
 ║   - Execute:    http://localhost:${PORT}/api/execute${' '.repeat(19)}║
 ║   - Workflow:   http://localhost:${PORT}/api/workflow${' '.repeat(18)}║
+║   - Stripe:     http://localhost:${PORT}/api/stripe${' '.repeat(20)}║
+║   - Admin:      http://localhost:${PORT}/api/admin${' '.repeat(22)}║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
       `);
