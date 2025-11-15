@@ -8,6 +8,10 @@ import DashboardPage from './pages/Dashboard';
 import ProjectsPage from './pages/Projects';
 import ProjectDetailPage from './pages/ProjectDetail';
 import SettingsPage from './pages/Settings';
+import NewProjectPage from './pages/NewProject';
+import ProjectWorkflowPage from './pages/ProjectWorkflow';
+import AdminPage from './pages/Admin';
+import QualityPage from './pages/Quality';
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
@@ -98,6 +102,46 @@ function App() {
             <ProtectedRoute>
               <DashboardLayout>
                 <SettingsPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/new"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <NewProjectPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/workflow"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <ProjectWorkflowPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:id/quality"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <QualityPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <AdminPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
