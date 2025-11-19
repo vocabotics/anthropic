@@ -1,0 +1,218 @@
+================================================================================
+                     VOCABOTICS CODEBASE ANALYSIS - QUICK REFERENCE
+================================================================================
+
+1. MAIN APPLICATION PURPOSE
+================================================================================
+Vocabotics is an AI ORCHESTRATION platform that generates complete software 
+systems in 8 calls instead of 200+ iterative calls.
+
+Core Innovation: Vocabotics Tags
+  <Button data-vocabotics-id="btn-login-2fa">Login</Button>
+  Maps to: Frontend → Handler → API → Backend → Database → Tests
+
+2. THE WORKFLOW (6 PHASES)
+================================================================================
+Vision Input
+  ↓
+PRD Generation (Sonnet 4.5)
+  → 15-20 functional requirements, user stories, success metrics
+  ↓
+Architecture Design (Sonnet 4.5)
+  → Components, data models, API contracts, security, scalability
+  ↓
+Code Generation (Sonnet 4.5 for complex, Haiku for tests)
+  → Frontend (React) + Backend (Express) + Tests (Jest)
+  ↓
+Integration Mapping (Deterministic - extracts tags)
+  → Complete traceability: Frontend → API → Database → Tests
+  ↓
+Quality Validation
+  → ISO 9001, ISO 12207 compliance
+  → Requirement coverage 100%
+  → Test coverage 95%+
+  ↓
+Deployment Ready
+
+3. PROMPT LOCATION & STRUCTURE
+================================================================================
+Location: /apps/api/src/services/generators/ and /apps/api/src/services/ai.service.ts
+
+Pattern:
+  System Prompt: "You are an expert [domain]. Generate [artifact] as JSON..."
+  User Prompt: "Generate [artifact] for:\n[context]\n[requirements]..."
+  Output: Valid JSON with specific schema
+
+Key Generators:
+  ✓ prd-generator.service.ts (vision → PRD)
+  ✓ architecture-generator.service.ts (PRD → architecture)
+  ✓ schema-generator.service.ts (architecture → Prisma schema)
+  ✓ code-generator.service.ts (architecture → React + Express)
+  ✓ Test generation in ai.service.ts
+
+Model Selection:
+  Sonnet 4.5 → Complex tasks (PRD, Architecture, Frontend code)
+  Haiku 3.5 → Simple tasks (Tests, migrations, database utilities)
+  Vision → Image analysis (UI validation, screenshots)
+
+4. DATABASE (PostgreSQL) - CONVERT TO JSON FOR PYTHON CLI
+================================================================================
+Core Tables to Convert:
+
+projects
+  ├─ name, vision, description
+  ├─ current_phase (state machine)
+  ├─ technology_stack (JSON)
+  └─ settings (JSON)
+
+artifacts
+  ├─ type (prd|architecture|code|schema|tests|integration_map)
+  ├─ version (1, 2, 3...)
+  ├─ content (JSONB - the actual artifact)
+  ├─ generated_by (sonnet-4.5|haiku|vision)
+  └─ status (draft|review|approved)
+
+integration_elements
+  ├─ vocabotics_id (unique tag like "btn-login-2fa")
+  ├─ element_type (button|input|form|component)
+  ├─ file_path, line_number
+  ├─ api_endpoint, database_operations
+  └─ test_references, requirement_ids
+
+ai_calls (for cost tracking)
+  ├─ model, task_type, tokens_in, tokens_out
+  ├─ cost_usd, duration_ms
+  └─ cached (boolean)
+
+5. KEY ARCHITECTURAL DECISIONS
+================================================================================
+State Machine: Enforce strict workflow (can't skip phases)
+  States: VISION → PRD_GENERATION → PRD_REVIEW → ARCHITECTURE_DESIGN → 
+          ARCHITECTURE_REVIEW → SCHEMA_GENERATION → API_SPECIFICATION →
+          CODE_GENERATION → CODE_REVIEW → TEST_GENERATION → 
+          INTEGRATION_TESTING → QUALITY_REVIEW → DEPLOYMENT
+
+Tags: Every element must have vocabotics-id for traceability
+  Frontend: <Component data-vocabotics-id="comp-id">
+  Backend: // vocabotics-id: "api-id"
+  Database: -- vocabotics-requirements: REQ-ID
+
+JSON Output: All AI responses must be valid JSON (temperature: 0.3-0.7)
+  Lower temp (0.3) = more consistent code/tests
+  Higher temp (0.7) = more creative PRD/architecture
+
+Cost Tracking: Log every AI call (model, tokens, cost, duration)
+
+6. FOR YOUR PYTHON CLI - RECOMMENDED STRUCTURE
+================================================================================
+projects/project_name/
+├─ .vocabotics/
+│  ├─ config.json (project metadata, current phase)
+│  ├─ state.json (state machine history)
+│  ├─ ai_calls.jsonl (log of all AI calls)
+│  └─ cache.json (cached AI responses)
+├─ artifacts/
+│  ├─ prd.json, prd.v2.json, prd.v3.json
+│  ├─ architecture.json
+│  ├─ schema.prisma
+│  ├─ api_spec.yaml
+│  └─ integration_map.json
+├─ src/
+│  ├─ frontend/ (generated React code with tags)
+│  ├─ backend/ (generated Express code with tags)
+│  └─ tests/ (generated Jest tests)
+├─ reports/
+│  ├─ quality_report.json
+│  ├─ compliance_report.json
+│  └─ traceability_matrix.json
+└─ README.md (auto-generated)
+
+Python Modules to Create:
+  ✓ core/state_machine.py
+  ✓ ai/client.py + prompts.py + model_router.py
+  ✓ generators/ (prd, architecture, schema, code, test)
+  ✓ mapping/ (tag_extractor.py + integration_mapper.py)
+  ✓ validation/ (quality_validator.py)
+  ✓ storage/ (file_manager.py)
+  ✓ cli/ (main.py with click or argparse)
+
+7. CRITICAL SUCCESS FACTORS
+================================================================================
+1. Tag System: Preserve vocabotics-id tags - this IS the traceability
+2. Prompt Quality: Use exact system prompts from original code
+3. JSON Validation: Every AI response must parse + have required fields
+4. State Machine: Never skip states - order matters
+5. File Versioning: Keep artifact history (prd.json, prd.v2.json)
+6. Cost Tracking: Log all AI calls for optimization
+
+8. DOCUMENT REFERENCES (ALL SAVED IN REPO)
+================================================================================
+CODEBASE_ANALYSIS.md (24KB)
+  → Complete technical breakdown, all generators, all services
+  → Start here for deep understanding
+
+SYSTEM_FLOW.md (22KB)
+  → Visual diagrams, data flow, tag system, model routing
+  → Visual learners should start here
+
+FILE_LOCATIONS.md (3.4KB)
+  → Quick reference to all source files
+  → Use this to navigate the codebase
+
+EXPLORATION_SUMMARY.md (11KB) ← START HERE
+  → Big picture overview
+  → Python CLI architecture recommendations
+  → Workflow summary
+  → Example CLI usage
+
+9. WORKFLOW TIMING (Rough Estimates)
+================================================================================
+PRD Generation:      45 sec (~2100 tokens in, 3200 out, $0.15)
+Architecture:        90 sec (~4500 tokens in, 5100 out, $0.29)
+Schema Generation:   30 sec (~2000 tokens in, 2500 out, $0.12)
+Code Generation:     120 sec (~5000 tokens in, 8000 out, $0.45)
+Test Generation:     60 sec (~3000 tokens in, 4000 out, $0.15)
+Integration Mapping: 30 sec (deterministic, no AI, no cost)
+Quality Validation:  60 sec (deterministic, no AI, no cost)
+────────────────────────────────────────────────────
+TOTAL:               ~6 min, ~19,500 tokens, ~$1.16
+
+vs Traditional:      200+ calls, 50+ tokens per call, $50-100+
+
+10. EXAMPLE PROJECT OUTPUT (Auth System)
+================================================================================
+PRD:
+  - 18 functional requirements (REQ-F-001 to REQ-F-018)
+  - 12 non-functional requirements (REQ-NF-001 to REQ-NF-012)
+  - 15 user stories (US-001 to US-015)
+  - 4 personas
+  - Success metrics: signup rate, login speed, 2FA adoption
+  - Risks: security, compliance, user adoption
+
+Architecture:
+  - 8 components (Auth Service, Session Manager, OAuth Handler, etc.)
+  - 6 data models (User, Session, Token, Role, Permission, Audit)
+  - 12 API endpoints (/auth/login, /auth/signup, /auth/2fa, etc.)
+  - Security: JWT + bcrypt + 2FA + OAuth
+  - Scalability: horizontal scaling, Redis caching
+
+Code:
+  - 23 React components (with vocabotics-id tags)
+  - 18 Express routes/controllers (with vocabotics-id tags)
+  - 6 Prisma models (with vocabotics-requirements tags)
+  - 6 test files with 95%+ coverage
+
+Integration Map:
+  - 156 tagged elements mapping frontend → backend → database
+  - 100% requirement coverage
+  - Complete traceability matrix
+
+Quality Report:
+  - ISO 9001: 98.5% compliant
+  - ISO 12207: 97.2% compliant
+  - Test coverage: 96.3%
+  - Overall score: 98/100
+
+================================================================================
+                    READY TO BUILD YOUR PYTHON CLI!
+================================================================================
